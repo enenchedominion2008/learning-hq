@@ -1,0 +1,6 @@
+{
+  "name": "Learning HQ",
+  "description": "Master 50 programming and web languages from scratch through beginner-friendly lessons, guided syntax drills, and the Coding Arena.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,87 @@
+{
+  "users": [
+    {
+      "id": "usr_386f396693b6",
+      "name": "Enenche Dominion",
+      "email": "dominionenenche5@gmail.com",
+      "username": "dominionenenche5",
+      "passwordHash": "3f67c411b12d03a86a39d540a3fbf524:8882da2e31a277bb63cc94e5c87dfb75963a55c90333feceff18a97246b8eb56e58457e498cf10fb45f75ba0ab4b7224cde90c53bb4a31f5479b7edc6e2dd2e5",
+      "role": "student",
+      "membershipStatus": "free",
+      "membershipApprovedAt": null,
+      "preferredLanguageId": "python",
+      "completedLessons": [],
+      "completedDrills": [],
+      "completedArena": [],
+      "savedCodeDrafts": {
+        "python-l1": "# TODO: Write your first \"Hello, World!\" in Python below\nprint(\"dominion\")"
+      },
+      "savedDrillAnswers": {},
+      "xp": 0,
+      "streakDays": 1,
+      "longestStreakDays": 1,
+      "lastActiveDate": "2026-11-26",
+      "earnedBadgeIds": [],
+      "unseenBadgeIds": [],
+      "notifications": [
+        {
+          "id": "msg_f534fbc6a3",
+          "kind": "welcome",
+          "to": "dominionenenche5@gmail.com",
+          "subject": "Welcome to Learning HQ, dominionenenche5 — Start From Scratch Across 50 Languages",
+          "message": "Hello dominionenenche5,\n\nWelcome to Learning HQ, Enenche Dominion! We are thrilled to have you join our engineering and coding community.\n\nYour account is now active and every step you take—chosen language, lesson drafts, verified drills, Arena solutions, and XP—is automatically saved so you can pick up right where you left off anytime.\n\nHere is what you can explore right away:\n• Start Truly From Scratch: Every language begins at Lesson 01 with what the language is and your first \"Hello, World!\" program, then builds step by step through comments, variables, data types, arithmetic, decisions, loops, functions, and collections.\n• 10 Free Beginner Lessons Across 50 Languages: Explore Python, JavaScript, HTML, CSS, C, C++, C#, Java, SQL, PL/SQL, ABAP, SAS, Rust, Go, Swift, Kotlin, Zig, Ladder Logic, and 32 more tracks (500 open beginner lessons total).\n• Guided Drills & Timer-Free Coding Arena: Confirm when you are ready before any drill timer starts, then test your understanding in the Coding Arena without timer pressure.\n• Socratic AI Study Guide: Ask questions inside any lesson or Arena challenge to understand concepts deeply without spoiling answers.\n• Daily Streak Award Badges: Stay consistent to unlock award badges at 2 days, 1 week, 2 weeks, 3 weeks, 1 month, and 2 months.\n\nWhenever you are ready to unlock advanced lessons (Lessons 11–14+) and Mastery Arena challenges, click \"Register as Member\" (₦5,000/month or ₦60,000/year via Moniepoint 7062449465 · Enenche Dominion).\n\nHappy coding,\nThe Learning HQ Team",
+          "imageUrl": "/assets/aistudio/Cheerful_Coding_Workshop_Selfie_714295be.webp",
+          "imageCaption": "Welcome to the Learning HQ coding community",
+          "deliveryStatus": "sent",
+          "deliveryNote": "Email sent to dominionenenche5@gmail.com",
+          "createdAt": "2026-11-26T08:59:58.652Z",
+          "read": true
+        }
+      ],
+      "createdAt": "2026-11-26T08:59:58.652Z",
+      "lastLoginAt": "2026-11-26T08:59:58.652Z"
+    },
+    {
+      "id": "usr_77e82d951527",
+      "name": "Enenche Dominion",
+      "email": "enenchedominion@gmail.com",
+      "username": "enenchedominion",
+      "passwordHash": "1464109503e1a696ca1481c068410986:a8c25793548bf2c58acc116020202992a45106857cc4c90ab9162ad01eb56fc7903657b0b22a5cd22d9b6115194c01760cc6458bd4af7b7f0b5d89b95f9859ab",
+      "role": "student",
+      "membershipStatus": "free",
+      "membershipApprovedAt": null,
+      "preferredLanguageId": "python",
+      "completedLessons": [],
+      "completedDrills": [],
+      "completedArena": [],
+      "savedCodeDrafts": {},
+      "savedDrillAnswers": {},
+      "xp": 0,
+      "streakDays": 1,
+      "longestStreakDays": 1,
+      "lastActiveDate": "2026-11-26",
+      "earnedBadgeIds": [],
+      "unseenBadgeIds": [],
+      "notifications": [
+        {
+          "id": "msg_a0cf452aab",
+          "kind": "welcome",
+          "to": "enenchedominion@gmail.com",
+          "subject": "Welcome to Learning HQ, enenchedominion — Start From Scratch Across 50 Languages",
+          "message": "Hello enenchedominion,\n\nWelcome to Learning HQ, Enenche Dominion! We are thrilled to have you join our engineering and coding community.\n\nYour account is now active and every step you take—chosen language, lesson drafts, verified drills, Arena solutions, and XP—is automatically saved so you can pick up right where you left off anytime.\n\nHere is what you can explore right away:\n• Start Truly From Scratch: Every language begins at Lesson 01 with what the language is and your first \"Hello, World!\" program, then builds step by step through comments, variables, data types, arithmetic, decisions, loops, functions, and collections.\n• 10 Free Beginner Lessons Across 50 Languages: Explore Python, JavaScript, HTML, CSS, C, C++, C#, Java, SQL, PL/SQL, ABAP, SAS, Rust, Go, Swift, Kotlin, Zig, Ladder Logic, and 32 more tracks (500 open beginner lessons total).\n• Guided Drills & Timer-Free Coding Arena: Confirm when you are ready before any drill timer starts, then test your understanding in the Coding Arena without timer pressure.\n• Socratic AI Study Guide: Ask questions inside any lesson or Arena challenge to understand concepts deeply without spoiling answers.\n• Daily Streak Award Badges: Stay consistent to unlock award badges at 2 days, 1 week, 2 weeks, 3 weeks, 1 month, and 2 months.\n\nWhenever you are ready to unlock advanced lessons (Lessons 11–14+) and Mastery Arena challenges, click \"Register as Member\" (₦5,000/month or ₦60,000/year via Moniepoint 7062449465 · Enenche Dominion).\n\nHappy coding,\nThe Learning HQ Team",
+          "imageUrl": "/assets/aistudio/Cheerful_Coding_Workshop_Selfie_714295be.webp",
+          "imageCaption": "Welcome to the Learning HQ coding community",
+          "deliveryStatus": "sent",
+          "deliveryNote": "Email sent to enenchedominion@gmail.com",
+          "createdAt": "2026-11-26T08:57:14.546Z",
+          "read": true
+        }
+      ],
+      "createdAt": "2026-11-26T08:57:14.546Z",
+      "lastLoginAt": "2026-11-26T08:57:14.546Z"
+    }
+  ],
+  "paymentRequests": [],
+  "lessonLockOverrides": {},
+  "customLessons": {}
+}
