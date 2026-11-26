@@ -226,3 +226,53 @@ export async function sendMembershipApprovedEmail(params: {
   const result = await dispatchEmail({to: params.to, subject, text: message, html});
   return {subject, message, result};
 }
+
+export async function sendPasswordResetOtpEmail(params: {
+  to: string;
+  name: string;
+  username: string;
+  otp: string;
+  expiresMinutes: number;
+}): Promise<{subject: string; message: string; result: EmailSendResult}> {
+  const displayName = params.username.trim() || params.name.trim() || 'Student';
+  const safeDisplay = escapeHtml(displayName);
+  const safeOtp = escapeHtml(params.otp);
+
+  const subject = `${params.otp} is your Learning HQ password reset OTP`;
+  const message =
+    `Hello ${displayName},\n\n` +
+    `We received a request to reset your Learning HQ account password.\n\n` +
+    `Copy this 6-digit OTP code to verify your email before changing your password:\n\n` +
+    `    ${params.otp}\n\n` +
+    `This code expires in ${params.expiresMinutes} minutes. If you did not request a password reset, you can safely ignore this email.\n\n` +
+    `— Learning HQ Security`;
+
+  const html = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; line-height: 1.65; max-width: 540px; margin: 0 auto; padding: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;">
+      <p style="margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #2563eb;">
+        Learning HQ · Password Reset Verification
+      </p>
+      <h2 style="margin: 0 0 12px; font-size: 22px; font-weight: 700; color: #0f172a;">
+        Hello ${safeDisplay},
+      </h2>
+      <p style="margin: 0 0 16px; font-size: 14px; color: #334155;">
+        Copy the 6-digit verification OTP below and paste it into Learning HQ to verify your email address before setting a new password:
+      </p>
+      <div style="margin: 18px 0; padding: 16px; text-align: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; letter-spacing: 0.22em; color: #0f172a;">
+          ${safeOtp}
+        </span>
+      </div>
+      <p style="margin: 0 0 8px; font-size: 13px; color: #475569;">
+        This OTP expires in <strong>${params.expiresMinutes} minutes</strong> and can only be used once.
+      </p>
+      <p style="margin: 14px 0 0; font-size: 12px; color: #64748b;">
+        If you did not ask to reset your password, you can safely ignore this email.
+      </p>
+    </div>
+  `;
+
+  const result = await dispatchEmail({to: params.to, subject, text: message, html});
+  return {subject, message, result};
+}
+

@@ -6,6 +6,7 @@ import express from 'express';
 import type {NextFunction, Request, Response} from 'express';
 import {
   sendMembershipApprovedEmail,
+  sendPasswordResetOtpEmail,
   sendWelcomeEmail,
 } from './server/mailer.ts';
 import {
@@ -275,6 +276,239 @@ app.post('/api/auth/logout', requireAuth, (req: AuthedRequest, res: Response) =>
     activeSessions.delete(req.auth.sid);
   }
   res.json({ok: true});
+});
+
+interface PasswordResetChallenge {
+  userId: string;
+  otpHash: string | null;
+  expiresAt: number;
+  attempts: number;
+  resendAllowedAt: number;
+  resetTokenHash: string | null;
+  resetExpiresAt: number;
+}
+
+const OTP_TTL_MS = 1000 * 60 * 10;
+const OTP_RESEND_COOLDOWN_MS = 1000 * 30;
+const OTP_MAX_ATTEMPTS = 5;
+const passwordResetChallenges = new Map<string, PasswordResetChallenge>();
+
+function sha256Hex(value: string): string {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function safeHexEqual(aHex: string, bHex: string): boolean {
+  const aBuf = Buffer.from(aHex, 'hex');
+  const bBuf = Buffer.from(bHex, 'hex');
+  if (aBuf.length === 0 || aBuf.length !== bBuf.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
+function pruneExpiredResetChallenges(): void {
+  const now = Date.now();
+  for (const [emailKey, ch] of passwordResetChallenges.entries()) {
+    const otpActive = ch.otpHash !== null && now <= ch.expiresAt;
+    const resetActive = ch.resetTokenHash !== null && now <= ch.resetExpiresAt;
+    if (!otpActive && !resetActive) {
+      passwordResetChallenges.delete(emailKey);
+    }
+  }
+}
+
+app.post('/api/auth/forgot-password/request', async (req: Request, res: Response) => {
+  const {email} = req.body ?? {};
+  if (typeof email !== 'string') {
+    res.status(400).json({error: 'Please enter your email address.'});
+    return;
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    res.status(400).json({error: 'Please provide a valid email address.'});
+    return;
+  }
+
+  pruneExpiredResetChallenges();
+  const existing = passwordResetChallenges.get(trimmedEmail);
+  if (existing && Date.now() < existing.resendAllowedAt) {
+    const waitSec = Math.ceil((existing.resendAllowedAt - Date.now()) / 1000);
+    res.status(429).json({
+      error: `Please wait ${waitSec}s before requesting another OTP code.`,
+    });
+    return;
+  }
+
+  const store = readStore();
+  const user = store.users.find((u) => u.email.toLowerCase() === trimmedEmail);
+
+  if (!user) {
+    res.status(404).json({
+      error:
+        'No Learning HQ account was found with that email address. Please sign up for free first.',
+      code: 'ACCOUNT_NOT_FOUND',
+    });
+    return;
+  }
+
+  const otp = crypto.randomInt(100000, 1000000).toString();
+  const now = Date.now();
+  passwordResetChallenges.set(trimmedEmail, {
+    userId: user.id,
+    otpHash: sha256Hex(otp),
+    expiresAt: now + OTP_TTL_MS,
+    attempts: 0,
+    resendAllowedAt: now + OTP_RESEND_COOLDOWN_MS,
+    resetTokenHash: null,
+    resetExpiresAt: 0,
+  });
+
+  const sent = await sendPasswordResetOtpEmail({
+    to: user.email,
+    name: user.name,
+    username: user.username,
+    otp,
+    expiresMinutes: 10,
+  });
+
+  if (sent.result.deliveryStatus === 'queued_smtp_unconfigured') {
+    passwordResetChallenges.delete(trimmedEmail);
+    res.status(503).json({
+      error:
+        'Email sending is not configured yet. Add SMTP_USER and SMTP_PASS in Settings > Secrets so OTP codes can be delivered to your email.',
+    });
+    return;
+  }
+
+  if (sent.result.deliveryStatus === 'failed') {
+    passwordResetChallenges.delete(trimmedEmail);
+    res.status(502).json({
+      error: sent.result.deliveryNote || 'Could not send OTP email right now.',
+    });
+    return;
+  }
+
+  res.json({
+    ok: true,
+    message:
+      'We sent a 6-digit OTP to your email. Go to your email inbox, copy the OTP code, and enter it below to verify your email.',
+  });
+});
+
+app.post('/api/auth/forgot-password/verify-otp', (req: Request, res: Response) => {
+  const {email, otp} = req.body ?? {};
+  if (typeof email !== 'string' || typeof otp !== 'string') {
+    res.status(400).json({error: 'Email and 6-digit OTP code are required.'});
+    return;
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  const cleanOtp = otp.replace(/\s+/g, '');
+  if (!/^\d{6}$/.test(cleanOtp)) {
+    res.status(400).json({error: 'Please enter the 6-digit OTP code from your email.'});
+    return;
+  }
+
+  pruneExpiredResetChallenges();
+  const challenge = passwordResetChallenges.get(trimmedEmail);
+  if (!challenge || !challenge.otpHash || Date.now() > challenge.expiresAt) {
+    res.status(400).json({
+      error: 'This OTP has expired or was not requested. Please request a new OTP.',
+    });
+    return;
+  }
+
+  if (challenge.attempts >= OTP_MAX_ATTEMPTS) {
+    passwordResetChallenges.delete(trimmedEmail);
+    res.status(429).json({
+      error: 'Too many incorrect OTP attempts. Please request a new OTP code.',
+    });
+    return;
+  }
+
+  if (!safeHexEqual(sha256Hex(cleanOtp), challenge.otpHash)) {
+    challenge.attempts += 1;
+    const remaining = OTP_MAX_ATTEMPTS - challenge.attempts;
+    if (remaining <= 0) {
+      passwordResetChallenges.delete(trimmedEmail);
+      res.status(429).json({
+        error: 'Too many incorrect OTP attempts. Please request a new OTP code.',
+      });
+      return;
+    }
+    res.status(400).json({
+      error: `Invalid OTP code. Check your email and try again (${remaining} attempts left).`,
+    });
+    return;
+  }
+
+  const resetToken = crypto.randomBytes(24).toString('hex');
+  challenge.otpHash = null;
+  challenge.resetTokenHash = sha256Hex(resetToken);
+  challenge.resetExpiresAt = Date.now() + OTP_TTL_MS;
+
+  res.json({
+    verified: true,
+    resetToken,
+    message: 'Email verified. You can now set your new password.',
+  });
+});
+
+app.post('/api/auth/forgot-password/reset', (req: Request, res: Response) => {
+  const {email, resetToken, newPassword} = req.body ?? {};
+  if (
+    typeof email !== 'string' ||
+    typeof resetToken !== 'string' ||
+    typeof newPassword !== 'string'
+  ) {
+    res.status(400).json({error: 'Email, verification token, and new password are required.'});
+    return;
+  }
+
+  if (newPassword.length < 4 || newPassword.length > 128) {
+    res.status(400).json({error: 'New password must be between 4 and 128 characters.'});
+    return;
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  pruneExpiredResetChallenges();
+  const challenge = passwordResetChallenges.get(trimmedEmail);
+  if (
+    !challenge ||
+    !challenge.resetTokenHash ||
+    Date.now() > challenge.resetExpiresAt ||
+    !safeHexEqual(sha256Hex(resetToken), challenge.resetTokenHash)
+  ) {
+    res.status(400).json({
+      error: 'Email verification expired. Please request and verify a new OTP.',
+    });
+    return;
+  }
+
+  const store = readStore();
+  const user = store.users.find((u) => u.id === challenge.userId);
+  if (!user) {
+    passwordResetChallenges.delete(trimmedEmail);
+    res.status(404).json({error: 'Account not found.'});
+    return;
+  }
+
+  user.passwordHash = hashPassword(newPassword);
+  writeStore(store);
+  passwordResetChallenges.delete(trimmedEmail);
+
+  // Invalidate any active sessions belonging to this user after password change
+  for (const [sid, info] of activeSessions.entries()) {
+    if (info.userId === user.id) {
+      activeSessions.delete(sid);
+    }
+  }
+
+  res.json({
+    ok: true,
+    message: 'Your password has been changed. You can now log in with your new password.',
+  });
 });
 
 app.get('/api/auth/me', requireAuth, (req: AuthedRequest, res: Response) => {
